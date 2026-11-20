@@ -319,7 +319,7 @@ export const gallery: GalleryEvent[] = [
     cover: 1, photos: [{ alt: 'Presenting at the INFORMS TSL Workshop 2025' }],
   },
   {
-    id: 'trb-2025', title: 'TRB 104th Annual Meeting', place: 'Washington, D.C. and San Francisco, USA', start: '2025-01-05', end: '2025-01-09',
+    id: 'trb-2025', title: 'TRB 104th Annual Meeting & CAUS US Workshop', place: 'Washington, D.C. and San Francisco, USA', start: '2025-01-04', end: '2025-01-16',
     note: 'Presented our work at TRB 2025 in Washington, D.C., then went to Stanford University for an international workshop. Two weeks of heavy snow in D.C. and fantastic weather in San Francisco!',
     cover: 2,
     photos: [
