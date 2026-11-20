@@ -306,7 +306,13 @@ export const gallery: GalleryEvent[] = [
   {
     id: 'sigspatial-2025', title: 'ACM SIGSPATIAL 2025, GeoSim workshop', place: 'Minneapolis, USA', start: '2025-11-03', end: '2025-11-06',
     note: 'Attended ACM SIGSPATIAL 2025. Minneapolis, my most peaceful city ever!',
-    cover: 1, photos: [{ alt: 'Presenting at the GeoSim workshop' }, { alt: 'At ACM SIGSPATIAL 2025' }],
+    cover: 1,
+    photos: [
+      { alt: 'Presenting at the GeoSim workshop', caption: 'Presentation' },
+      { alt: 'At ACM SIGSPATIAL 2025', caption: 'SIGSPATIAL 2025' },
+      { alt: 'St. Anthony Falls and an arched bridge over the Mississippi River', caption: 'From the Stone Arch Bridge' },
+      { alt: 'Downtown Minneapolis behind autumn trees', caption: 'Minneapolis' },
+    ],
   },
   {
     id: 'kds-2025', title: '2025 K-Data Science Conference, Best Paper Award', place: 'Daegu', start: '2025-09-05',
