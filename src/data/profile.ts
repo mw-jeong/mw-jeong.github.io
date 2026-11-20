@@ -27,7 +27,8 @@ export const profile = {
   // 문단별로 한 항목. 첫 문단은 LinkedIn 소개글 그대로입니다.
   bio: [
     `I’m a Ph.D. student in Data Science at KAIST Spacetime Intelligence Lab and Urban AI Institute. With a background in Economics and Data Science, I’m interested in applying data science to the urban mobility domain.`,
-    `During my M.S., I worked on vertiport site selection for urban air mobility, trip purpose inference, and LLM agents that set up and run traffic simulations in SUMO. My doctoral research focuses on population modeling, agentic AI for urban simulation, and spatio-temporal data mining.`,
+    `Economics taught me how people make choices. In my research, I study these choices in cities: where people go, how they travel, and why. I also study how their choices change when the city changes.`,
+    `During my M.S., I worked on vertiport site selection for urban air mobility, trip purpose inference, and LLM agents for traffic simulation in SUMO. In my Ph.D., I continue this work with population modeling, agentic AI for urban simulation, and spatio-temporal data mining.`,
   ],
 };
 
