@@ -314,15 +314,8 @@ let cam = null;
   const hp = (location.hash.match(/hero-p=(business|office|student)/) || [])[1];
   if (hp) current = STORIES.findIndex((s) => s.key === hp);
   const jumpT = parseFloat((location.hash.match(/hero-t=([\d.]+)/) || [])[1]);
-  if (REDUCE || /hero-freeze/.test(location.hash)) {
-    // reduced motion: one representative still frame, re-drawn only for a moment while the scene settles
-    const ft = REDUCE ? 9.0 : jumpT;
-    let n = 0;
-    const still = () => { frame(ft, 0); if (REDUCE ? ++n < 40 : true) requestAnimationFrame(still); };
-    requestAnimationFrame(still);
-    window.addEventListener('resize', () => frame(ft, 0));
-  } else {
-    if (isFinite(jumpT)) t0 -= jumpT * 1000;
+  function animate(fromT = 0) {
+    t0 = performance.now() - fromT * 1000;
     let visible = true, paused = 0, lastDraw = 0;
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe($('banner'));
     const tick = (now) => {
@@ -334,5 +327,19 @@ let cam = null;
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
+  }
+
+  if (REDUCE || /hero-freeze/.test(location.hash)) {
+    // Reduced motion: show one representative still frame and wait for the visitor to press Play.
+    const ft = REDUCE ? 9.0 : jumpT;
+    let n = 0, stopped = false;
+    const still = () => { if (stopped) return; frame(ft, 0); if (REDUCE ? ++n < 40 : true) requestAnimationFrame(still); };
+    requestAnimationFrame(still);
+    const onResize = () => { if (!stopped) frame(ft, 0); };
+    window.addEventListener('resize', onResize);
+    root.addEventListener('hero:play', () => { stopped = true; window.removeEventListener('resize', onResize); current = 0; animate(0); }, { once: true });
+    root.classList.add('is-paused');
+  } else {
+    animate(isFinite(jumpT) ? jumpT : 0);
   }
 }

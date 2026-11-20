@@ -11,6 +11,7 @@ import { profile } from '../data/profile';
       <div class="q" id="q"><span id="q1">Who are they, and why do they move?</span><span id="q2" style="opacity:0"></span></div>
       <div class="stat" id="stat"></div>
       <div class="who-list" id="whoList"></div>
+      <button type="button" class="play" id="heroPlay">▶ Play animation</button>
     </div>
     <div class="person halo" id="person" aria-live="polite">
       <div class="name" id="pname"></div>
@@ -75,9 +76,19 @@ import { profile } from '../data/profile';
     }
   })();
   if (root && hasGL) {
-    const go = () => import('../scripts/hero3d.js').then((m) => m.start(root, { reduce })).catch(() => {});
+    const go = () =>
+      import('../scripts/hero3d.js')
+        .then((m) => m.start(root, { reduce }))
+        .catch((e) => console.warn('[header] the 3D scene could not start, showing the still image instead:', e));
     if ('requestIdleCallback' in window) window.requestIdleCallback(go, { timeout: 1500 });
     else setTimeout(go, 300);
+    // reduced motion: the scene waits on a still frame until the visitor chooses to play it
+    document.getElementById('heroPlay')?.addEventListener('click', () => {
+      root.classList.remove('is-paused');
+      root.dispatchEvent(new Event('hero:play'));
+    });
+  } else if (root) {
+    console.warn('[header] WebGL2 is not available, so the 3D scene is replaced by a still image.');
   }
 </script>
 
@@ -98,6 +109,10 @@ import { profile } from '../data/profile';
   .hero3d .who-list button[aria-pressed='true'] { color: var(--ink); font-weight: 500; }
   .hero3d .who-list button i { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--person); }
   .hero3d .who-list button:focus-visible { outline: 2px solid var(--person); outline-offset: 3px; }
+  .hero3d .play { display: none; margin-top: 10px; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); background: #fff; border: 1px solid var(--rule); border-radius: 4px; padding: 3px 10px; cursor: pointer; text-shadow: none; }
+  .hero3d .play:hover { border-color: var(--ink-3); }
+  .hero3d .play:focus-visible { outline: 2px solid var(--person); outline-offset: 2px; }
+  .hero3d.is-paused .play { display: inline-block; }
   .hero3d .credit { position: absolute; right: max(16px, calc((100% - var(--maxw)) / 2 + 24px)); bottom: 12px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
   .hero3d .credit a { color: inherit; text-decoration: none; }
 
