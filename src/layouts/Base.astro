@@ -24,10 +24,11 @@ const sections = [
   { id: 'teaching', label: 'Teaching' },
   { id: 'awards', label: 'Awards' },
 ];
-const nav = [
-  ...sections.map((s) => ({ href: isHome ? `#${s.id}` : `/#${s.id}`, label: s.label, section: s.id, current: false })),
-  ...(gallery.length > 0 ? [{ href: '/gallery', label: 'Gallery', section: '', current: path.startsWith('/gallery') }] : []),
-];
+const nav = sections.map((s) => ({ href: isHome ? `#${s.id}` : `/#${s.id}`, label: s.label, section: s.id, current: false }));
+if (gallery.length > 0) {
+  // on the home page it scrolls to the Gallery block next to News; elsewhere it opens the gallery page
+  nav.splice(1, 0, { href: isHome ? '#gallery' : '/gallery', label: 'Gallery', section: 'gallery', current: path.startsWith('/gallery') });
+}
 const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 ---
 

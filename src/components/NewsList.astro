@@ -3,11 +3,12 @@ import { formatMonth } from '../lib/format';
 
 interface Props {
   items: { date: string; text: string }[];
+  compact?: boolean; // narrower date column, for the half-width home layout
 }
-const { items } = Astro.props;
+const { items, compact = false } = Astro.props;
 ---
 
-<div class="news">
+<div class:list={['news', { compact }]}>
   {
     items.map((n) => (
       <div class="row">
@@ -21,5 +22,15 @@ const { items } = Astro.props;
 <style>
   .news .row {
     padding: 7px 0;
+  }
+  .news.compact .row {
+    grid-template-columns: 5.6rem minmax(0, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .news.compact .row {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
   }
 </style>

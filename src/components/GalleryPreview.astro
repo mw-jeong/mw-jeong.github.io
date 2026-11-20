@@ -1,0 +1,67 @@
+---
+// Home page: the latest few events from the gallery, each with its cover photo.
+import { gallery, photoSrc } from '../data/cv';
+import { formatMonth } from '../lib/format';
+
+interface Props {
+  count?: number;
+}
+const { count = 3 } = Astro.props;
+const items = gallery.slice(0, count);
+---
+
+<ul class="gp">
+  {
+    items.map((ev) => (
+      <li>
+        <a href={`/gallery#${ev.id}`}>
+          <img src={photoSrc(ev.id, ev.cover, true)} alt={ev.photos[ev.cover - 1]?.alt ?? ev.title} loading="lazy" decoding="async" />
+          <span class="t">{ev.title}</span>
+          <span class="d">{formatMonth(ev.start.slice(0, 7))}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .gp {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li {
+    padding: 8px 0;
+  }
+  a {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    align-items: start;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  img {
+    grid-row: span 2;
+    width: 112px;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--rule);
+  }
+  .t {
+    line-height: 1.4;
+  }
+  a:hover .t {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 4px;
+  }
+  .d {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+</style>

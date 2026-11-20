@@ -3,3 +3,6 @@ dist/
 .astro/
 .DS_Store
 .env
+
+# original photos (resized copies go in public/gallery/)
+photo/

@@ -248,6 +248,92 @@ export const news: { date: string; text: string }[] = [
   { date: '2024-03', text: 'Started my M.S. in Data Science at KAIST.' },
 ];
 
-// 사진은 public/gallery/ 에 넣고 한 줄씩 추가합니다. 비어 있으면 Gallery 메뉴가 숨겨집니다.
-// 예: { src: '/gallery/cikm2026.jpg', alt: 'Presenting SUMO-SimQA', caption: 'CIKM 2026', date: '2026-11' }
-export const gallery: { src: string; alt: string; caption?: string; date?: string }[] = [];
+// 갤러리: 사진은 public/gallery/<id>/<n>.jpg (크게 볼 때) 와 <n>-t.jpg (목록용).
+// 최신순. 홈에는 앞의 3개 행사가 cover 사진으로 나오고, 전체는 /gallery 에 나옵니다.
+export type GalleryEvent = {
+  id: string;
+  title: string;
+  place: string;
+  start: string; // 'YYYY-MM-DD'
+  end?: string;
+  note: string;
+  cover: number; // 홈에 쓸 사진 번호
+  photos: { alt: string; caption?: string }[];
+};
+
+export const gallery: GalleryEvent[] = [
+  {
+    id: 'ulsan-2026', title: 'Ulsan AI Smart City Idea Competition, 2nd Prize', place: 'Ulsan', start: '2026-10-07',
+    note: 'Won 2nd Prize at the Ulsan AI Smart City Idea Competition.',
+    cover: 1, photos: [{ alt: 'Receiving the 2nd Prize at the Ulsan AI Smart City Idea Competition' }],
+  },
+  {
+    id: 'icusi-2026', title: 'ICUSI 2026', place: 'Guangzhou, China', start: '2026-08-08', end: '2026-08-09',
+    note: 'Presented our work at the 4th International Conference on Urban Science and Intelligence. Also went sightseeing in Hong Kong and Guangzhou.',
+    cover: 3,
+    photos: [
+      { alt: 'A street in Hong Kong', caption: 'Hong Kong' },
+      { alt: 'At the entrance of HKUST (Guangzhou)', caption: 'HKUST (Guangzhou)' },
+      { alt: 'Presenting at ICUSI 2026', caption: 'Presentation' },
+      { alt: 'Standing next to a poster at ICUSI 2026', caption: 'Poster session' },
+    ],
+  },
+  {
+    id: 'urban-ai-conf-2026', title: '2026 International Conference on Urban AI', place: 'Seoul', start: '2026-07-15', end: '2026-07-16',
+    note: 'Presented our work at the 2026 International Conference on Urban AI, hosted by the KAIST Urban AI Institute.',
+    cover: 1, photos: [{ alt: 'Presenting at the 2026 International Conference on Urban AI' }],
+  },
+  {
+    id: 'science-festival-2026', title: '2026 Korea Science Festival', place: 'KINTEX, Gyeonggi', start: '2026-04-24', end: '2026-04-26',
+    note: 'Our lab ran the AI Data Zone in the KAIST booth at the 2026 Korea Science Festival, with the exhibit “Urban Heat, Urban Sales.”',
+    cover: 1, photos: [{ alt: 'Visitors at the AI Data Zone' }, { alt: 'The AI Data Zone exhibit' }],
+  },
+  {
+    id: 'graduation-2026', title: 'M.S. graduation', place: 'KAIST', start: '2026-02-20',
+    note: 'Officially a KAIST M.S. graduate!',
+    cover: 2, photos: [{ alt: 'In a graduation gown on the KAIST field' }, { alt: 'Holding flowers after the graduation ceremony' }],
+  },
+  {
+    id: 'junior-kaist-2026', title: 'Junior KAIST AI·SW Camp', place: 'KAIST', start: '2026-01-29', end: '2026-01-31',
+    note: 'Spent three days as a class tutor at the Junior KAIST AI·SW Camp.',
+    cover: 1, photos: [{ alt: 'Speaking to students at the camp' }, { alt: 'Students working on laptops at the camp' }],
+  },
+  {
+    id: 'ms-defense-2025', title: 'M.S. thesis defense', place: 'KAIST', start: '2025-12-10',
+    note: 'Successfully defended my M.S. thesis!',
+    cover: 1, photos: [{ alt: 'Next to the title slide of the M.S. thesis defense' }],
+  },
+  {
+    id: 'sigspatial-2025', title: 'ACM SIGSPATIAL 2025, GeoSim workshop', place: 'Minneapolis, USA', start: '2025-11-03', end: '2025-11-06',
+    note: 'Attended ACM SIGSPATIAL 2025. Minneapolis, my most peaceful city ever!',
+    cover: 1, photos: [{ alt: 'Presenting at the GeoSim workshop' }, { alt: 'At ACM SIGSPATIAL 2025' }],
+  },
+  {
+    id: 'kds-2025', title: '2025 K-Data Science Conference, Best Paper Award', place: 'Daegu', start: '2025-09-05',
+    note: 'Presented our work at the 2025 K-Data Science Conference and received the Best Paper Award.',
+    cover: 1, photos: [{ alt: 'Next to the TripVaDE poster' }, { alt: 'Best Paper Award certificate' }],
+  },
+  {
+    id: 'tsl-2025', title: 'INFORMS TSL Workshop 2025', place: 'Seoul', start: '2025-05-21',
+    note: 'Presented our work at the INFORMS TSL Workshop 2025.',
+    cover: 1, photos: [{ alt: 'Presenting at the INFORMS TSL Workshop 2025' }],
+  },
+  {
+    id: 'trb-2025', title: 'TRB 104th Annual Meeting', place: 'Washington, D.C. and San Francisco, USA', start: '2025-01-05', end: '2025-01-09',
+    note: 'Presented our work at TRB 2025 in Washington, D.C., then went to Stanford University for an international workshop. Two weeks of heavy snow in D.C. and fantastic weather in San Francisco!',
+    cover: 2,
+    photos: [
+      { alt: 'At the Washington Monument', caption: 'Washington Monument' },
+      { alt: 'Next to our poster at TRB 2025', caption: 'Poster session' },
+      { alt: 'The Golden Gate Bridge', caption: 'Golden Gate Bridge' },
+      { alt: 'The San Francisco skyline across the bay', caption: 'San Francisco' },
+    ],
+  },
+  {
+    id: 'highway-2024', title: '2nd Highway Vision Canvas Paper Competition, award ceremony', place: 'Korea Expressway Corporation', start: '2024-09-06',
+    note: 'Our paper won 3rd Prize at the Highway Vision Canvas Paper Competition.',
+    cover: 1, photos: [{ alt: 'Award ceremony of the Highway Vision Canvas Paper Competition' }],
+  },
+];
+
+export const photoSrc = (id: string, n: number, thumb = false) => `/gallery/${id}/${n}${thumb ? '-t' : ''}.jpg`;

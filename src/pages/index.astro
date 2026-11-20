@@ -5,7 +5,9 @@ import Section from '../components/Section.astro';
 import Row from '../components/Row.astro';
 import Pub from '../components/Pub.astro';
 import NewsList from '../components/NewsList.astro';
+import GalleryPreview from '../components/GalleryPreview.astro';
 import {
+  gallery,
   education,
   publications,
   experience,
@@ -22,18 +24,27 @@ const NEWS_ON_HOME = 4;
 <Base>
   <Hero />
   <div class="container">
-    {
-      news.length > 0 && (
-        <Section id="news" title="News">
-          <NewsList items={news.slice(0, NEWS_ON_HOME)} />
-          {news.length > NEWS_ON_HOME && (
+    <!-- News and Gallery side by side; each shows the latest few and links to its own page -->
+    <div class="news-gallery">
+      <Section id="news" title="News">
+        <NewsList items={news.slice(0, NEWS_ON_HOME)} compact />
+        {news.length > NEWS_ON_HOME && (
+          <p class="more">
+            <a href="/news">All news</a>
+          </p>
+        )}
+      </Section>
+      {
+        gallery.length > 0 && (
+          <Section id="gallery" title="Gallery">
+            <GalleryPreview count={3} />
             <p class="more">
-              <a href="/news">All news</a>
+              <a href="/gallery">All photos</a>
             </p>
-          )}
-        </Section>
-      )
-    }
+          </Section>
+        )
+      }
+    </div>
 
     <Section id="education" title="Education">
       {education.map((e) => <Row entry={e} />)}
@@ -71,3 +82,18 @@ const NEWS_ON_HOME = 4;
     }
   </div>
 </Base>
+
+<style>
+  .news-gallery {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 48px;
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .news-gallery {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+</style>
