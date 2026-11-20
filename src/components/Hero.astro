@@ -29,7 +29,7 @@ import { profile } from '../data/profile';
 
 <!-- same two-column grid as the CV rows below: photo on the left, everything else on the right -->
 <div class="container profile">
-  {profile.photo && <img class="photo" src={profile.photo} alt={`Portrait of ${profile.name}`} width="144" height="144" />}
+  {profile.photo && <img class="photo" src={profile.photo} alt={`${profile.name} next to a poster at ICUSI 2026`} width="152" height="190" />}
   <div class="intro">
     <h1>
       {profile.name}
@@ -159,12 +159,11 @@ import { profile } from '../data/profile';
     position: relative;
   }
   .photo {
-    width: 144px;
-    height: 144px;
-    border-radius: 50%;
+    width: 152px;
+    height: 190px;
+    border-radius: 4px;
     object-fit: cover;
-    background: #fff;
-    box-shadow: 0 0 0 1px var(--rule);
+    background: var(--rule);
   }
   .intro {
     padding-top: 18px;
@@ -219,8 +218,8 @@ import { profile } from '../data/profile';
       margin-top: 12px;
     }
     .photo {
-      width: 96px;
-      height: 96px;
+      width: 112px;
+      height: 140px;
     }
     .intro {
       padding-top: 0;

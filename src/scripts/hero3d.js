@@ -27,7 +27,18 @@ let cam = null;
   const [W0, S0] = CITY.origin;
   const ll = (x, y) => [W0 + x / 1e5, S0 + y / 1e5];
   const MX = Math.cos((37.5015 * Math.PI) / 180) * 1.1132, MY = 1.1054;
-  const buildings = CITY.buildings.map((b) => { const ring = []; let x = b[1], y = b[2]; ring.push(ll(x, y)); for (let i = 3; i < b.length; i += 2) { x += b[i]; y += b[i + 1]; ring.push(ll(x, y)); } return { polygon: ring, h: b[0] }; });
+  // Buildings: skip tiny ones and the ones that never come into view (fewer polygons to tessellate at load).
+  const buildings = [];
+  for (const b of CITY.buildings) {
+    const xy = [[b[1], b[2]]];
+    for (let i = 3; i < b.length; i += 2) xy.push([xy[xy.length - 1][0] + b[i], xy[xy.length - 1][1] + b[i + 1]]);
+    let area = 0;
+    for (let i = 0; i < xy.length; i++) { const p0 = xy[i], p1 = xy[(i + 1) % xy.length]; area += p0[0] * p1[1] - p1[0] * p0[1]; }
+    area = Math.abs(area / 2) * MX * MY;
+    const [cx, cy] = xy[0];
+    if (area < 70 || cx < 350 || cx > 4600 || cy < 150 || cy > 2400) continue;
+    buildings.push({ polygon: xy.map(([x, y]) => ll(x, y)), h: b[0] });
+  }
   const E = CITY.edges.map(([c, u, v, ...f]) => {
     const xy = []; for (let i = 0; i < f.length; i += 2) xy.push([f[i], f[i + 1]]);
     let len = 0; for (let i = 1; i < xy.length; i++) len += Math.hypot((xy[i][0] - xy[i - 1][0]) * MX, (xy[i][1] - xy[i - 1][1]) * MY);
@@ -175,11 +186,14 @@ let cam = null;
   const lighting = new LightingEffect({ ambient: new AmbientLight({ color: [255, 255, 255], intensity: 1.4 }), key: new DirectionalLight({ color: [255, 255, 255], intensity: 0.75, direction: [-3, -9, -6] }), fill: new DirectionalLight({ color: [255, 255, 255], intensity: 0.3, direction: [6, 3, -4] }) });
   const material = { ambient: 0.62, diffuse: 0.45, shininess: 18, specularColor: [36, 38, 42] };
   const CENTER = ll(2550, 1180);
-  const deckgl = new Deck({ parent: document.getElementById('scene'), views: new MapView({ repeat: false }), controller: false, effects: [lighting], initialViewState: { longitude: CENTER[0], latitude: CENTER[1], zoom: 15, pitch: 54, bearing: -22 } });
+  const deckgl = new Deck({ parent: document.getElementById('scene'), useDevicePixels: Math.min(window.devicePixelRatio || 1, 1.5), views: new MapView({ repeat: false }), controller: false, effects: [lighting], initialViewState: { longitude: CENTER[0], latitude: CENTER[1], zoom: 15, pitch: 54, bearing: -22 } });
   const dash = PathStyleExtension ? [new PathStyleExtension({ dash: true })] : [];
   const TOP = { depthCompare: 'always', depthWriteEnabled: false };
   const roadsLayer = new PathLayer({ id: 'roads', data: E, getPath: (e) => e.path, getColor: (e) => [[208, 214, 221], [216, 221, 227], [226, 230, 234], [234, 237, 240]][e.c], getWidth: (e) => [13, 9, 6, 4][e.c], widthUnits: 'meters', widthMinPixels: 0.6, capRounded: true, jointRounded: true });
   const buildingsLayer = new PolygonLayer({ id: 'buildings', data: buildings, getPolygon: (d) => d.polygon, extruded: true, wireframe: true, getElevation: (d) => d.h, getFillColor: [251, 251, 252], getLineColor: [224, 228, 233], lineWidthMinPixels: 1, material });
+  const ONE = [0];
+  const FONT = { sdf: true };
+  STORIES.forEach((st) => { st.airData = st.air ? [EXTRA_AIR, st.air] : [EXTRA_AIR]; st.options.forEach((o) => { o.previewData = [o.preview]; }); });
   const label = (id, d, color, a) => new TextLayer({ id, data: d, parameters: TOP, getPosition: (x) => x.p, getText: (x) => x.text, getColor: [...color, Math.round(255 * a)], getSize: 12.5, fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: 500, fontSettings: { sdf: true }, outlineWidth: 4, outlineColor: [255, 255, 255, Math.round(255 * a)], getTextAnchor: 'middle', getAlignmentBaseline: 'bottom', getPixelOffset: [0, -4] });
 
   // ---------- overlay ----------
@@ -241,40 +255,42 @@ let cam = null;
     const fc = (d) => (d.kind === 'chg' ? [...C, A(0.9)] : [...FLOW, A(0.55 - 0.3 * show)]);
     layers.push(new TripsLayer({ id: 'flow-' + S.key, data: F.list, parameters: TOP, getPath: (d) => d.path, getTimestamps: (d) => d.ts, getColor: fc, getWidth: 3, widthUnits: 'meters', widthMinPixels: 1.5, trailLength: 0.6, currentTime: t, capRounded: true, jointRounded: true, fadeTrail: true, updateTriggers: { getColor: [S.key, Math.round(show * 20), Math.round(fade * 20)] } }));
 
-    if (show > 0.01 && S.kind === 'closure') {
-      layers.push(new PathLayer({ id: 'closed-band', data: closedPaths, parameters: TOP, getPath: (d) => d, getColor: [...C, A(0.12 * show)], getWidth: 22, widthUnits: 'meters', capRounded: true }));
-      layers.push(new PathLayer({ id: 'closed', data: closedPaths, parameters: TOP, getPath: (d) => d, getColor: [...C, A(0.95 * show)], getWidth: 6, widthUnits: 'meters', widthMinPixels: 2, extensions: dash, getDashArray: [3, 2], dashJustified: true }));
-      layers.push(new ScatterplotLayer({ id: 'barriers', data: closedEnds, parameters: TOP, getPosition: (d) => d, getRadius: 14, radiusMinPixels: 4, getFillColor: [255, 255, 255, A(show)], stroked: true, getLineColor: [...C, A(show)], lineWidthMinPixels: 2.5 }));
-      layers.push(new LineLayer({ id: 'closed-lead', data: [0], parameters: TOP, getSourcePosition: () => [...closedMid, 0], getTargetPosition: () => [...closedMid, 60], getColor: [...C, A(0.8 * show)], getWidth: 1 }));
-      layers.push(label('closed-label', [{ p: [...closedMid, 60], text: 'Teheran-ro closed for construction' }], S.pal.ink, show * fade));
-    }
-    if (show > 0.01 && S.kind === 'uam') {
-      const g = smooth((t - T_INT) / 1.0);
-      layers.push(new ColumnLayer({ id: 'vertiport', data: [VERT_NODE], diskResolution: 6, radius: 30, extruded: true, getPosition: (n) => nodeLL(n), getElevation: () => VH * g, getFillColor: [...C, A(0.88 * show)], material, updateTriggers: { getElevation: [g], getFillColor: [show, fade] } }));
-      layers.push(new LineLayer({ id: 'v-lead', data: [0], parameters: TOP, getSourcePosition: () => [...nodeLL(VERT_NODE), VH * g], getTargetPosition: () => [...nodeLL(VERT_NODE), VH * g + 45], getColor: [...C, A(0.8 * show)], getWidth: 1 }));
-      layers.push(label('v-label', [{ p: [...nodeLL(VERT_NODE), VH * g + 45], text: 'Vertiport for urban air mobility' }], S.pal.ink, show * fade));
-      const air = [EXTRA_AIR, ...(S.air ? [S.air] : [])];
-      layers.push(new TripsLayer({ id: 'air', data: air, parameters: TOP, getPath: (d) => d.path, getTimestamps: (d) => d.ts, getColor: (d) => (d === S.air ? [...PERSON, A(1)] : [...C, A(0.9)]), getWidth: 5, widthUnits: 'meters', widthMinPixels: 2.2, trailLength: 1.6, currentTime: t, capRounded: true, fadeTrail: true, updateTriggers: { getColor: [fade] } }));
-      const flying = air.filter((d) => t >= d.t0 && t <= d.t1).map((d) => posAt(d, t));
-      layers.push(new ScatterplotLayer({ id: 'air-shadow', data: flying, getPosition: (p) => [p[0], p[1], 0], getRadius: 12, radiusMinPixels: 2.5, getFillColor: [30, 40, 60, A(0.14)] }));
-    }
-    if (show > 0.01 && S.kind === 'store') {
-      const rise = 1 - Math.pow(1 - smooth((t - T_INT) / 1.3), 2);
-      layers.push(new PolygonLayer({ id: 'store', data: [STORE], getPolygon: (d) => d.polygon, extruded: true, wireframe: true, getElevation: (d) => d.h * rise, getFillColor: [...C, A(0.85 * show)], getLineColor: [255, 255, 255, A(0.7 * show)], material, updateTriggers: { getElevation: [rise], getFillColor: [show, fade] } }));
-      layers.push(new LineLayer({ id: 's-lead', data: [0], parameters: TOP, getSourcePosition: () => [...nodeLL(STORE_NODE), STORE.h * rise], getTargetPosition: () => [...nodeLL(STORE_NODE), STORE.h * rise + 40], getColor: [...C, A(0.8 * show)], getWidth: 1 }));
-      layers.push(label('s-label', [{ p: [...nodeLL(STORE_NODE), STORE.h * rise + 40], text: 'New department store' }], S.pal.ink, show * fade));
-    }
+    // Every layer exists from the first frame and is only toggled with `visible`, so the graphics
+    // programs compile once while loading instead of in the middle of the animation.
+    const on = (x) => x > 0.01;
+    const sC = S.kind === 'closure' ? show : 0, sU = S.kind === 'uam' ? show : 0, sS = S.kind === 'store' ? show : 0;
+    const g = smooth((t - T_INT) / 1.0);
+    const rise = 1 - Math.pow(1 - smooth((t - T_INT) / 1.3), 2);
+    const text = (id, vis, data, a, pos) => new TextLayer({ id, visible: vis, data, parameters: TOP, getPosition: pos, getText: (x) => x, getColor: [...S.pal.ink, Math.round(255 * a)], getSize: 12.5, fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: 500, fontSettings: FONT, outlineWidth: 4, outlineColor: [255, 255, 255, Math.round(255 * a)], getTextAnchor: 'middle', getAlignmentBaseline: 'bottom', getPixelOffset: [0, -4], updateTriggers: { getPosition: [g, rise] } });
+
+    // road closure
+    layers.push(new PathLayer({ id: 'closed-band', visible: on(sC), data: closedPaths, parameters: TOP, getPath: (d) => d, getColor: [...C, A(0.12 * sC)], getWidth: 22, widthUnits: 'meters', capRounded: true }));
+    layers.push(new PathLayer({ id: 'closed', visible: on(sC), data: closedPaths, parameters: TOP, getPath: (d) => d, getColor: [...C, A(0.95 * sC)], getWidth: 6, widthUnits: 'meters', widthMinPixels: 2, extensions: dash, getDashArray: [3, 2], dashJustified: true }));
+    layers.push(new ScatterplotLayer({ id: 'barriers', visible: on(sC), data: closedEnds, parameters: TOP, getPosition: (d) => d, getRadius: 14, radiusMinPixels: 4, getFillColor: [255, 255, 255, A(sC)], stroked: true, getLineColor: [...C, A(sC)], lineWidthMinPixels: 2.5 }));
+    layers.push(new LineLayer({ id: 'closed-lead', visible: on(sC), data: ONE, parameters: TOP, getSourcePosition: () => [...closedMid, 0], getTargetPosition: () => [...closedMid, 60], getColor: [...C, A(0.8 * sC)], getWidth: 1 }));
+    layers.push(text('closed-label', on(sC), ['Teheran-ro closed for construction'], sC * fade, () => [...closedMid, 60]));
+
+    // vertiport and air taxis
+    layers.push(new ColumnLayer({ id: 'vertiport', visible: on(sU), data: [VERT_NODE], diskResolution: 6, radius: 30, extruded: true, getPosition: (n) => nodeLL(n), getElevation: () => VH * g, getFillColor: [...C, A(0.88 * sU)], material, updateTriggers: { getElevation: [g], getFillColor: [sU, fade, S.key] } }));
+    layers.push(new LineLayer({ id: 'v-lead', visible: on(sU), data: ONE, parameters: TOP, getSourcePosition: () => [...nodeLL(VERT_NODE), VH * g], getTargetPosition: () => [...nodeLL(VERT_NODE), VH * g + 45], getColor: [...C, A(0.8 * sU)], getWidth: 1, updateTriggers: { getSourcePosition: [g], getTargetPosition: [g] } }));
+    layers.push(text('v-label', on(sU), ['Vertiport for urban air mobility'], sU * fade, () => [...nodeLL(VERT_NODE), VH * g + 45]));
+    layers.push(new TripsLayer({ id: 'air', visible: on(sU), data: S.airData, parameters: TOP, getPath: (d) => d.path, getTimestamps: (d) => d.ts, getColor: (d) => (d === S.air ? [...PERSON, A(1)] : [...C, A(0.9)]), getWidth: 5, widthUnits: 'meters', widthMinPixels: 2.2, trailLength: 1.6, currentTime: t, capRounded: true, fadeTrail: true, updateTriggers: { getColor: [Math.round(fade * 20), S.key] } }));
+    const flying = on(sU) ? S.airData.filter((d) => t >= d.t0 && t <= d.t1).map((d) => posAt(d, t)) : [];
+    layers.push(new ScatterplotLayer({ id: 'air-shadow', visible: on(sU), data: flying, getPosition: (q) => [q[0], q[1], 0], getRadius: 12, radiusMinPixels: 2.5, getFillColor: [30, 40, 60, A(0.14)] }));
+
+    // department store
+    layers.push(new PolygonLayer({ id: 'store', visible: on(sS), data: [STORE], getPolygon: (d) => d.polygon, extruded: true, wireframe: true, getElevation: (d) => d.h * rise, getFillColor: [...C, A(0.85 * sS)], getLineColor: [255, 255, 255, A(0.7 * sS)], material, updateTriggers: { getElevation: [rise], getFillColor: [sS, fade, S.key], getLineColor: [sS, fade] } }));
+    layers.push(new LineLayer({ id: 's-lead', visible: on(sS), data: ONE, parameters: TOP, getSourcePosition: () => [...nodeLL(STORE_NODE), STORE.h * rise], getTargetPosition: () => [...nodeLL(STORE_NODE), STORE.h * rise + 40], getColor: [...C, A(0.8 * sS)], getWidth: 1, updateTriggers: { getSourcePosition: [rise], getTargetPosition: [rise] } }));
+    layers.push(text('s-label', on(sS), ['New department store'], sS * fade, () => [...nodeLL(STORE_NODE), STORE.h * rise + 40]));
 
     // the two options on the map: both drawn while weighing, the winner takes the colour
     const optA = smooth((t - T_CHOICE) / 0.4) * (1 - smooth((t - T_GO - 0.3) / 0.5));
-    if (optA > 0.01) {
-      const decided = t >= T_DECIDE;
-      const pulse = 0.55 + 0.35 * Math.sin(t * 6);
-      S.options.forEach((o, i) => {
-        const win = i === S.win, alpha = decided ? (win ? 0.95 : 0.25) : (i === 0 ? pulse : 1.1 - pulse);
-        layers.push(new PathLayer({ id: 'opt-' + i, data: [o.preview], parameters: TOP, getPath: (d) => d, getColor: [...(decided && win ? C : GRAY), A(alpha * optA)], getWidth: decided && win ? 7 : 5, widthUnits: 'meters', widthMinPixels: decided && win ? 2.2 : 1.6, extensions: dash, getDashArray: [2, 1.6], updateTriggers: { getColor: [t], getWidth: [decided] } }));
-      });
-    }
+    const decided = t >= T_DECIDE;
+    const pulse = 0.55 + 0.35 * Math.sin(t * 6);
+    S.options.forEach((o, i) => {
+      const win = i === S.win, alpha = decided ? (win ? 0.95 : 0.25) : (i === 0 ? pulse : 1.1 - pulse);
+      layers.push(new PathLayer({ id: 'opt-' + i, visible: on(optA), data: o.previewData, parameters: TOP, getPath: (d) => d, getColor: [...(decided && win ? C : GRAY), A(alpha * optA)], getWidth: decided && win ? 7 : 5, widthUnits: 'meters', widthMinPixels: decided && win ? 2.2 : 1.6, extensions: dash, getDashArray: [2, 1.6], updateTriggers: { getWidth: [decided] } }));
+    });
 
     // the person
     const pa = smooth((t - 0.3) / 0.4) * (1 - smooth((t - T_END) / 0.8));
@@ -290,7 +306,7 @@ let cam = null;
     const target = narrow ? S.focus : CENTER;
     if (!cam) cam = [...target];
     cam[0] += (target[0] - cam[0]) * 0.05; cam[1] += (target[1] - cam[1]) * 0.05;
-    deckgl.setProps({ layers, viewState: { longitude: cam[0], latitude: cam[1], zoom: narrow ? 14.85 : 15.0, pitch: narrow ? 58 : 54, bearing: -22 + 7 * Math.sin((2 * Math.PI * gt) / 70) } });
+    deckgl.setProps({ layers, viewState: { longitude: cam[0], latitude: cam[1], zoom: narrow ? 14.2 : 15.0, pitch: narrow ? 50 : 54, bearing: -22 + 7 * Math.sin((2 * Math.PI * gt) / 70) } });
     overlay(t, S);
   }
 
@@ -307,14 +323,14 @@ let cam = null;
     window.addEventListener('resize', () => frame(ft, 0));
   } else {
     if (isFinite(jumpT)) t0 -= jumpT * 1000;
-    let visible = true, paused = 0;
+    let visible = true, paused = 0, lastDraw = 0;
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe($('banner'));
     const tick = (now) => {
       if (!visible) { if (!paused) paused = now; requestAnimationFrame(tick); return; }
       if (paused) { t0 += now - paused; clockStart += now - paused; paused = 0; }
       let t = (now - t0) / 1000;
       if (t >= LOOP) { current = (current + 1) % STORIES.length; t0 = now; t = 0; }
-      frame(t, (now - clockStart) / 1000);
+      if (now - lastDraw >= 31) { lastDraw = now; frame(t, (now - clockStart) / 1000); }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
