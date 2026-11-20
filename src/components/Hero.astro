@@ -133,8 +133,11 @@ import { profile } from '../data/profile';
   .hero3d .replan { margin-top: 6px; font-size: 12.5px; color: var(--c-ink); transition: opacity .4s; opacity: 0; }
 
   @media (max-width: 640px) {
-    .hero3d .top { flex-direction: column; gap: 10px; }
-    .hero3d .person { width: auto; }
+    /* phone: a taller stage; question and tabs at the top, the person's day in the faded band at the bottom */
+    .hero3d { height: min(150vw, 620px); }
+    .hero3d .top { flex-direction: column; gap: 10px; bottom: 0; }
+    .hero3d .person { position: absolute; left: 0; right: 0; bottom: 34px; width: auto; }
+    .hero3d .credit { bottom: 10px; }
     .hero3d .q { font-size: 14px; min-height: 44px; }
     .hero3d .q span { white-space: normal; width: 100%; }
     .hero3d .who-list { gap: 12px; font-size: 12px; }
@@ -213,7 +216,7 @@ import { profile } from '../data/profile';
     .profile {
       grid-template-columns: 1fr;
       gap: 16px;
-      margin-top: -28px;
+      margin-top: 12px;
     }
     .photo {
       width: 96px;

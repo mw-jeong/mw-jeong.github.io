@@ -10,6 +10,7 @@ export async function start(root, { reduce = false } = {}) {
 const REDUCE = reduce;
 const CITY = await (await fetch('/data/city.json')).json();
 let live = false;
+let cam = null;
   // ---------- story timeline (seconds within one persona) ----------
   const LOOP = 14, T_Q = 4.4, T_INT = 5.0, T_CHOICE = 5.9, T_DECIDE = 7.6, T_GO = 8.1, T_END = 12.8;
   const PERSON = [38, 48, 61], FLOW = [124, 138, 162], GRAY = [150, 158, 168];
@@ -104,6 +105,8 @@ let live = false;
     S.trips.push(tr); S.stops.push({ label: def.newLabel, dep: T_GO, t: tr.t1, changed: true });
     if (chosen.air) { S.air = timed(chosen.air, tr.t1 + 0.35, 1100); S.stops.push({ label: 'Airport', dep: S.air.t0, t: S.air.t0 + 1.4, changed: true }); }
     S.win = win;
+    const fp = [...def.stops.map((x) => nodeLL(x[1])), ...(def.focusExtra || [])];
+    S.focus = [fp.reduce((a, q) => a + q[0], 0) / fp.length, fp.reduce((a, q) => a + q[1], 0) / fp.length];
     return S;
   }
   const lunchB = nearest(3330, 1010, all2);
@@ -122,21 +125,21 @@ let live = false;
   const STORIES = [
     build({ key: 'business', kind: 'uam', name: 'Business traveler', attrs: '45, male, visiting from Busan, no car in Seoul',
       q: 'What if a vertiport for urban air mobility opens nearby?', cq: 'Taxi or UAM?',
-      stops: [['Hotel', nearest(3800, 1550, all3)], ['Meeting', nearest(3150, 1120, all0)], ['Lunch', lunchB]], newLabel: 'Vertiport',
+      stops: [['Hotel', nearest(3800, 1550, all3)], ['Meeting', nearest(3150, 1120, all0)], ['Lunch', lunchB]], newLabel: 'Vertiport', focusExtra: [nodeLL(VERT_NODE)],
       options: [
         { label: 'Taxi', p: 0.36, preview: roadToAirport.pts },
         { label: 'UAM (air taxi)', p: 0.64, win: true, ground: toVert.pts, air: airPath(nodeLL(VERT_NODE), AIRPORT, VH, 340, 360), preview: [...toVert.pts.map((q) => [q[0], q[1], 0]), ...airPath(nodeLL(VERT_NODE), ll(1200, 1900), VH, 300, 320)] },
       ], replan: 'Takes the air taxi to the airport.' }),
     build({ key: 'office', kind: 'closure', name: 'Office worker', attrs: '32, female, lives near Seolleung, drives to work',
       q: 'What if Teheran-ro closes for construction?', cq: 'North side or south side?',
-      stops: [['Home', nearest(2900, 1750, all3)], ['Work', work], ['Client', client]], newLabel: 'Work',
+      stops: [['Home', nearest(2900, 1750, all3)], ['Work', work], ['Client', client]], newLabel: 'Work', focusExtra: [closedMid, closedMid],
       options: [
         { label: 'Detour north', p: north === detour1 ? 0.59 : 0.41, win: north === detour1, ground: north.pts, preview: north.pts },
         { label: 'Detour south', p: south === detour1 ? 0.59 : 0.41, win: south === detour1, ground: south.pts, preview: south.pts },
       ], replan: 'Drives back to the office on the shorter detour.' }),
     build({ key: 'student', kind: 'store', name: 'Student', attrs: '17, male, high school, takes the bus',
       q: 'What if a new department store opens here?', cq: 'Restaurant or department store?',
-      stops: [['Home', nearest(1250, 1600, all3)], ['School', nearest(2050, 1650, all2)], ['Academy', academy]], newLabel: 'Dept. store',
+      stops: [['Home', nearest(1250, 1600, all3)], ['School', nearest(2050, 1650, all2)], ['Academy', academy]], newLabel: 'Dept. store', focusExtra: [nodeLL(STORE_NODE)],
       options: [
         { label: 'Restaurant', p: 0.43, preview: route(academy, restaurant, false).pts },
         { label: 'Dept. store', p: 0.57, win: true, ground: route(academy, STORE_NODE, false).pts, preview: route(academy, STORE_NODE, false).pts },
@@ -282,7 +285,12 @@ let live = false;
     layers.push(new ScatterplotLayer({ id: 'p-dot', data: [0], parameters: TOP, getPosition: () => pp, getRadius: 10, radiusMinPixels: 5, getFillColor: [...PERSON, A(pa)], stroked: true, getLineColor: [255, 255, 255, A(pa)], lineWidthMinPixels: 2, updateTriggers: { getPosition: [t], getFillColor: [t] } }));
 
     if (!live) { live = true; requestAnimationFrame(() => root.classList.add('is-live')); }
-    deckgl.setProps({ layers, viewState: { longitude: CENTER[0], latitude: CENTER[1], zoom: 15.0, pitch: 54, bearing: -22 + 7 * Math.sin((2 * Math.PI * gt) / 70) } });
+    // wide screens see the whole stage; on a phone the camera drifts to where this story happens
+    const narrow = root.clientWidth < 640;
+    const target = narrow ? S.focus : CENTER;
+    if (!cam) cam = [...target];
+    cam[0] += (target[0] - cam[0]) * 0.05; cam[1] += (target[1] - cam[1]) * 0.05;
+    deckgl.setProps({ layers, viewState: { longitude: cam[0], latitude: cam[1], zoom: narrow ? 14.85 : 15.0, pitch: narrow ? 58 : 54, bearing: -22 + 7 * Math.sin((2 * Math.PI * gt) / 70) } });
     overlay(t, S);
   }
 
