@@ -229,15 +229,18 @@ export const scholarships: Entry[] = [
 
 // 최신순. 홈에는 앞의 4개만 나오고, 전체는 /news 에 나옵니다.
 export const news: { date: string; text: string }[] = [
+  { date: '2026-10', text: 'Won 2nd Prize at the Ulsan AI Smart City Idea Competition (Ulsan Research Institute).' },
   { date: '2026-09', text: 'Started my Ph.D. in Data Science at KAIST.' },
   { date: '2026-09', text: '1 paper got accepted to TRB 2027 (106th Annual Meeting).' },
   { date: '2026-08', text: '1 paper got accepted to CIKM 2026.' },
   { date: '2026-03', text: 'Joined the KAIST Urban AI Institute as a researcher.' },
   { date: '2026-02', text: 'Received my M.S. in Data Science from KAIST!' },
+  { date: '2025-09', text: 'Received the Best Paper Award at the 2025 K-Data Science Conference.' },
   {
     date: '2025-09',
     text: '1 paper got accepted to the ACM SIGSPATIAL Workshop on Geospatial Simulation.',
   },
+  { date: '2024-09', text: 'Won 3rd Prize at the 2nd Highway Vision Canvas Paper Competition (Korea Expressway Corporation).' },
   {
     date: '2024-09',
     text: '1 paper got accepted to TRB 2025 (104th Annual Meeting).',

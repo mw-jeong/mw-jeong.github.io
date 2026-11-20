@@ -1,4 +1,5 @@
-// 이름, 소속, 링크, 소개, 첫 화면 설정. 빈 문자열('')인 항목은 화면에 나오지 않습니다.
+// 이름, 소속, 링크, 소개. 빈 문자열('')인 항목은 화면에 나오지 않습니다.
+// 맨 위 3D 장면의 페르소나와 시나리오는 src/scripts/hero3d.js 에 있습니다.
 export const profile = {
   name: 'Minwoo Jeong',
   nameKo: '정민우',
@@ -28,11 +29,6 @@ export const profile = {
     `I’m a Ph.D. student in Data Science at KAIST Spacetime Intelligence Lab and Urban AI Institute. With a background in Economics and Data Science, I’m interested in applying data science to the urban mobility domain.`,
     `During my M.S., I worked on vertiport site selection for urban air mobility, trip purpose inference, and LLM agents that set up and run traffic simulations in SUMO. My doctoral research focuses on population modeling, agentic AI for urban simulation, and spatio-temporal data mining.`,
   ],
-
-  // 맨 위 영상: true면 반복 재생, false면 한 번 재생 후 마지막 장면에서 멈춤
-  hero: {
-    loop: true,
-  },
 };
 
 export const site = {

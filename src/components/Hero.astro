@@ -1,50 +1,153 @@
 ---
-import HeroVideo from './HeroVideo.astro';
 import { profile } from '../data/profile';
 ---
 
-<section class="hero">
-  <HeroVideo loop={profile.hero.loop} />
-
-  <!-- 아래 CV 줄들과 같은 2칸 격자: 왼쪽 칸에 사진, 오른쪽 칸에 이름부터 소개까지 -->
-  <div class="container inner">
-    {profile.photo && <img class="photo" src={profile.photo} alt={`Portrait of ${profile.name}`} width="144" height="144" />}
-    <div class="intro">
-      <h1>
-        {profile.name}
-        {profile.nameKo && <span class="ko" lang="ko">{profile.nameKo}</span>}
-      </h1>
-      <p class="role">
-        {profile.position},{' '}
-        {profile.affiliationUrl ? <a href={profile.affiliationUrl}>{profile.affiliation}</a> : profile.affiliation}
-        <br />
-        {
-          profile.groups.map((g, i) => (
-            <>
-              {g.href ? <a class="nw" href={g.href}>{g.label}</a> : <span class="nw">{g.label}</span>}
-              {i < profile.groups.length - 1 && ', '}
-            </>
-          ))
-        }
-      </p>
-      <ul class="links">
-        {
-          profile.links.map((l) => (
-            <li>
-              <a href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
-                {l.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <div class="bio">{profile.bio.map((p) => <p>{p}</p>)}</div>
+<section class="hero3d" id="banner" aria-label="A 3D model of Gangnam, Seoul, showing how people move and how they respond to changes in the city">
+  <div class="scene" id="scene">
+    <img class="still" src="/media/hero-still.jpg" alt="" width="1280" height="560" />
+  </div>
+  <div class="top">
+    <div class="halo">
+      <div class="q" id="q"><span id="q1">Who are they, and why do they move?</span><span id="q2" style="opacity:0"></span></div>
+      <div class="stat" id="stat"></div>
+      <div class="who-list" id="whoList"></div>
+    </div>
+    <div class="person halo" id="person" aria-live="polite">
+      <div class="name" id="pname"></div>
+      <div class="attrs" id="pattrs"></div>
+      <div class="chain" id="chain"></div>
+      <div class="choice" id="choice">
+        <div class="cq" id="cq"></div>
+        <div class="opt" id="optA"><span class="ol"></span><span class="bar"><i></i></span><span class="pct"></span></div>
+        <div class="opt" id="optB"><span class="ol"></span><span class="bar"><i></i></span><span class="pct"></span></div>
+      </div>
+      <div class="replan" id="replan"></div>
     </div>
   </div>
+  <div class="credit halo"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
 </section>
 
+<!-- same two-column grid as the CV rows below: photo on the left, everything else on the right -->
+<div class="container profile">
+  {profile.photo && <img class="photo" src={profile.photo} alt={`Portrait of ${profile.name}`} width="144" height="144" />}
+  <div class="intro">
+    <h1>
+      {profile.name}
+      {profile.nameKo && <span class="ko" lang="ko">{profile.nameKo}</span>}
+    </h1>
+    <p class="role">
+      {profile.position},{' '}
+      {profile.affiliationUrl ? <a href={profile.affiliationUrl}>{profile.affiliation}</a> : profile.affiliation}
+      <br />
+      {
+        profile.groups.map((g, i) => (
+          <>
+            {g.href ? <a class="nw" href={g.href}>{g.label}</a> : <span class="nw">{g.label}</span>}
+            {i < profile.groups.length - 1 && ', '}
+          </>
+        ))
+      }
+    </p>
+    <ul class="links">
+      {
+        profile.links.map((l) => (
+          <li>
+            <a href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="bio">{profile.bio.map((p) => <p>{p}</p>)}</div>
+  </div>
+</div>
+
+<script>
+  // Load the 3D scene only when WebGL2 is there, and only after the page itself has shown.
+  const root = document.getElementById('banner');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasGL = (() => {
+    try {
+      return !!document.createElement('canvas').getContext('webgl2');
+    } catch {
+      return false;
+    }
+  })();
+  if (root && hasGL) {
+    const go = () => import('../scripts/hero3d.js').then((m) => m.start(root, { reduce })).catch(() => {});
+    if ('requestIdleCallback' in window) window.requestIdleCallback(go, { timeout: 1500 });
+    else setTimeout(go, 300);
+  }
+</script>
+
+<style is:global>
+  /* --- 3D header (classes are also created by the script, so these styles are global but scoped by .hero3d) --- */
+  .hero3d { --person: #26303d; --c: #0090d2; --c-ink: #00709f; position: relative; height: clamp(340px, 44vw, 600px); overflow: hidden; }
+  .hero3d .scene { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.4) 12%, #000 32%, #000 76%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.4) 12%, #000 32%, #000 76%, transparent 100%); }
+  .hero3d .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .8s ease; }
+  .hero3d.is-live .still { opacity: 0; }
+  .hero3d .halo { text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px #fff, 0 0 12px #fff; }
+  .hero3d .top { position: absolute; z-index: 2; top: 14px; left: max(16px, calc((100% - var(--maxw)) / 2 + 24px)); right: max(16px, calc((100% - var(--maxw)) / 2 + 24px)); display: flex; justify-content: space-between; gap: 24px; }
+  .hero3d .q { position: relative; font-size: 18px; font-weight: 500; letter-spacing: -0.005em; min-height: 28px; }
+  .hero3d .q span { position: absolute; left: 0; top: 0; white-space: nowrap; transition: opacity .5s ease; }
+  .hero3d .stat { font-size: 12.5px; color: var(--ink-2); min-height: 19px; transition: opacity .4s; font-variant-numeric: tabular-nums; }
+  .hero3d .who-list { display: flex; gap: 18px; margin-top: 10px; font-size: 13px; }
+  .hero3d .who-list button { position: relative; font: inherit; color: var(--ink-3); background: none; border: 0; padding: 0 0 5px; cursor: pointer; }
+  .hero3d .who-list button:hover { color: var(--ink); }
+  .hero3d .who-list button[aria-pressed='true'] { color: var(--ink); font-weight: 500; }
+  .hero3d .who-list button i { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--person); }
+  .hero3d .who-list button:focus-visible { outline: 2px solid var(--person); outline-offset: 3px; }
+  .hero3d .credit { position: absolute; right: max(16px, calc((100% - var(--maxw)) / 2 + 24px)); bottom: 12px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+  .hero3d .credit a { color: inherit; text-decoration: none; }
+
+  .hero3d .person { flex: 0 0 auto; width: 300px; padding-top: 3px; transition: opacity .4s; opacity: 0; }
+  .hero3d .person.on { opacity: 1; }
+  .hero3d .person .name { font-size: 13px; font-weight: 600; color: var(--person); }
+  .hero3d .person .name::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--person); box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(38,48,61,.35); margin-right: 8px; }
+  .hero3d .person .attrs { font-size: 12px; color: var(--ink-2); margin: 1px 0 0 17px; }
+  .hero3d .chain { display: flex; align-items: flex-start; margin-top: 8px; }
+  .hero3d .stop { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 56px; font-size: 11.5px; color: var(--ink-2); }
+  .hero3d .stop::before { content: ''; position: absolute; top: 4px; left: 50%; width: 100%; height: 2px; background: var(--person); opacity: .3; }
+  .hero3d .stop:last-child::before { display: none; }
+  .hero3d .stop .dot { position: relative; z-index: 1; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid var(--person); }
+  .hero3d .stop.done .dot { background: var(--person); }
+  .hero3d .stop.now .dot { background: #fff; box-shadow: 0 0 0 3px rgba(38,48,61,.15); }
+  .hero3d .stop.unk .dot { border-style: dashed; }
+  .hero3d .stop.chg .dot { border-color: var(--c); }
+  .hero3d .stop.chg.done .dot { background: var(--c); }
+  .hero3d .stop.chg::before { background: var(--c); opacity: .5; }
+  .hero3d .stop span { margin-top: 3px; white-space: nowrap; }
+  .hero3d .stop.done span, .hero3d .stop.now span { color: var(--ink); }
+  .hero3d .stop.chg span { color: var(--c-ink); }
+  .hero3d .choice { margin-top: 10px; font-size: 12px; transition: opacity .4s; opacity: 0; }
+  .hero3d .choice.on { opacity: 1; }
+  .hero3d .choice .cq { color: var(--ink); font-weight: 500; margin-bottom: 3px; }
+  .hero3d .opt { display: grid; grid-template-columns: 104px 1fr 34px; align-items: center; gap: 8px; color: var(--ink-2); line-height: 1.7; transition: color .3s, opacity .3s; }
+  .hero3d .opt .bar { height: 4px; background: #e8ebee; position: relative; }
+  .hero3d .opt .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #a9b1ba; }
+  .hero3d .opt .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  .hero3d .opt.win { color: var(--c-ink); font-weight: 500; }
+  .hero3d .opt.win .bar i { background: var(--c); }
+  .hero3d .opt.lose { opacity: .55; }
+  .hero3d .replan { margin-top: 6px; font-size: 12.5px; color: var(--c-ink); transition: opacity .4s; opacity: 0; }
+
+  @media (max-width: 640px) {
+    .hero3d .top { flex-direction: column; gap: 10px; }
+    .hero3d .person { width: auto; }
+    .hero3d .q { font-size: 14px; min-height: 44px; }
+    .hero3d .q span { white-space: normal; width: 100%; }
+    .hero3d .who-list { gap: 12px; font-size: 12px; }
+    .hero3d .stop { min-width: 46px; font-size: 10.5px; }
+    .hero3d .opt { grid-template-columns: 96px 1fr 32px; font-size: 11px; }
+  }
+  @media print {
+    .hero3d { display: none; }
+  }
+</style>
+
 <style>
-  .inner {
+  .profile {
     display: grid;
     grid-template-columns: 9.5rem minmax(0, 1fr);
     gap: 24px;
@@ -107,7 +210,7 @@ import { profile } from '../data/profile';
     margin-bottom: 0;
   }
   @media (max-width: 640px) {
-    .inner {
+    .profile {
       grid-template-columns: 1fr;
       gap: 16px;
       margin-top: -28px;
@@ -129,7 +232,7 @@ import { profile } from '../data/profile';
     }
   }
   @media print {
-    .inner {
+    .profile {
       display: block;
       margin-top: 0;
     }

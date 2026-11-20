@@ -11,13 +11,22 @@ interface Props {
 const { title, description = site.description } = Astro.props;
 const fullTitle = title ? `${title} | ${profile.name}` : site.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL('/media/replay-wide-end.jpg', Astro.site);
+const ogImage = new URL('/media/hero-still.jpg', Astro.site);
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isHome = path === '/';
+// Section tabs jump to the parts of the CV page; Gallery is its own page and shows up once it has photos.
+const sections = [
+  { id: 'news', label: 'News' },
+  { id: 'education', label: 'Education' },
+  { id: 'publications', label: 'Publications' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'teaching', label: 'Teaching' },
+  { id: 'awards', label: 'Awards' },
+];
 const nav = [
-  { href: '/news', label: 'News' },
-  ...(gallery.length > 0 ? [{ href: '/gallery', label: 'Gallery' }] : []),
+  ...sections.map((s) => ({ href: isHome ? `#${s.id}` : `/#${s.id}`, label: s.label, section: s.id, current: false })),
+  ...(gallery.length > 0 ? [{ href: '/gallery', label: 'Gallery', section: '', current: path.startsWith('/gallery') }] : []),
 ];
 const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 ---
@@ -48,13 +57,13 @@ const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'n
     />
   </head>
   <body>
-    <header class="site-header">
+    <header class="site-header" id="top">
       <div class="container bar">
-        {isHome ? <span /> : <a class="home" href="/">{profile.name}</a>}
-        <nav aria-label="Main">
+        <a class="home" href={isHome ? '#top' : '/'}>{profile.name}</a>
+        <nav aria-label="Sections">
           {
             nav.map((item) => (
-              <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>
+              <a href={item.href} data-section={item.section || undefined} aria-current={item.current ? 'page' : undefined}>
                 {item.label}
               </a>
             ))
@@ -68,35 +77,81 @@ const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'n
     <footer class="site-footer">
       <div class="container">Last updated {updated}.</div>
     </footer>
+
+    <script>
+      // Header gets a hairline once the page scrolls; the tab of the section in view is marked.
+      const header = document.querySelector('.site-header');
+      const onScroll = () => header?.classList.toggle('scrolled', window.scrollY > 8);
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('nav a[data-section]')].map((a) => [a.dataset.section, a]));
+      const sections = [...links.keys()].map((id) => document.getElementById(id!)).filter(Boolean) as HTMLElement[];
+      if (sections.length) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              links.forEach((a) => a.classList.remove('is-active'));
+              links.get(e.target.id)?.classList.add('is-active');
+            }
+          },
+          { rootMargin: '-35% 0px -60% 0px' },
+        );
+        sections.forEach((s) => io.observe(s));
+      }
+    </script>
   </body>
 </html>
 
 <style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--paper);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .site-header.scrolled {
+    border-bottom-color: var(--rule);
+  }
   .bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
+    gap: 24px;
+    height: 60px;
   }
   .home {
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
   }
   nav {
     display: flex;
-    gap: 24px;
+    gap: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar {
+    display: none;
   }
   nav a {
     color: var(--ink-2);
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14.5px;
+    white-space: nowrap;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
   }
-  nav a:hover,
-  nav a[aria-current='page'] {
+  nav a:hover {
     color: var(--ink);
   }
+  nav a.is-active,
   nav a[aria-current='page'] {
-    font-weight: 500;
+    color: var(--ink);
+    border-bottom-color: var(--ink);
   }
   main {
     padding-bottom: 80px;
@@ -106,5 +161,13 @@ const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'n
     padding: 24px 0 40px;
     font-size: 14px;
     color: var(--ink-3);
+  }
+  @media (max-width: 760px) {
+    .home {
+      display: none;
+    }
+    nav {
+      gap: 18px;
+    }
   }
 </style>

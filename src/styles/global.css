@@ -63,9 +63,16 @@ video {
   padding: 0 24px;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* ---------- CV sections ---------- */
 .cv-section {
   margin-top: 64px;
+  scroll-margin-top: 76px;
 }
 .cv-section > h2,
 .page-title {
