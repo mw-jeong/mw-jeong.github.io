@@ -1,0 +1,140 @@
+---
+import HeroVideo from './HeroVideo.astro';
+import { profile } from '../data/profile';
+---
+
+<section class="hero">
+  <HeroVideo loop={profile.hero.loop} />
+
+  <!-- 아래 CV 줄들과 같은 2칸 격자: 왼쪽 칸에 사진, 오른쪽 칸에 이름부터 소개까지 -->
+  <div class="container inner">
+    {profile.photo && <img class="photo" src={profile.photo} alt={`Portrait of ${profile.name}`} width="144" height="144" />}
+    <div class="intro">
+      <h1>
+        {profile.name}
+        {profile.nameKo && <span class="ko" lang="ko">{profile.nameKo}</span>}
+      </h1>
+      <p class="role">
+        {profile.position},{' '}
+        {profile.affiliationUrl ? <a href={profile.affiliationUrl}>{profile.affiliation}</a> : profile.affiliation}
+        <br />
+        {
+          profile.groups.map((g, i) => (
+            <>
+              {g.href ? <a class="nw" href={g.href}>{g.label}</a> : <span class="nw">{g.label}</span>}
+              {i < profile.groups.length - 1 && ', '}
+            </>
+          ))
+        }
+      </p>
+      <ul class="links">
+        {
+          profile.links.map((l) => (
+            <li>
+              <a href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="bio">{profile.bio.map((p) => <p>{p}</p>)}</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .inner {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    margin-top: -36px;
+    position: relative;
+  }
+  .photo {
+    width: 144px;
+    height: 144px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--rule);
+  }
+  .intro {
+    padding-top: 18px;
+  }
+  h1 {
+    font-size: 38px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+  .ko {
+    margin-left: 10px;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink-3);
+  }
+  .role {
+    margin: 0;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .role a {
+    color: inherit;
+  }
+  .role .nw {
+    white-space: nowrap;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .bio {
+    margin-top: 28px;
+    max-width: 68ch;
+  }
+  .bio p {
+    margin: 0 0 14px;
+  }
+  .bio p:last-child {
+    margin-bottom: 0;
+  }
+  @media (max-width: 640px) {
+    .inner {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: -28px;
+    }
+    .photo {
+      width: 96px;
+      height: 96px;
+    }
+    .intro {
+      padding-top: 0;
+    }
+    h1 {
+      font-size: 30px;
+    }
+    .ko {
+      display: block;
+      margin: 6px 0 0;
+      font-size: 17px;
+    }
+  }
+  @media print {
+    .inner {
+      display: block;
+      margin-top: 0;
+    }
+    .photo {
+      display: none;
+    }
+  }
+</style>

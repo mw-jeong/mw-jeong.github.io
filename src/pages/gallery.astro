@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { gallery } from '../data/cv';
+import { formatMonth } from '../lib/format';
+---
+
+<Base title="Gallery" description="Photos from conferences, teaching, and research.">
+  <div class="container">
+    <h1 class="page-title">Gallery</h1>
+    {gallery.length === 0 && <p class="empty">No photos yet.</p>}
+    <div class="grid">
+      {
+        gallery.map((g) => (
+          <figure>
+            <img src={g.src} alt={g.alt} loading="lazy" />
+            {(g.caption || g.date) && (
+              <figcaption>
+                {g.caption}
+                {g.date && <span class="date">{formatMonth(g.date)}</span>}
+              </figcaption>
+            )}
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .grid {
+    columns: 3 280px;
+    column-gap: 20px;
+  }
+  figure {
+    margin: 0 0 20px;
+    break-inside: avoid;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+  }
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .date {
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .empty {
+    color: var(--ink-2);
+  }
+</style>

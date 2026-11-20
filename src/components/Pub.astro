@@ -1,0 +1,38 @@
+---
+import type { Publication } from '../data/cv';
+import { profile } from '../data/profile';
+import { year } from '../lib/format';
+
+interface Props {
+  pub: Publication;
+}
+const { pub } = Astro.props;
+---
+
+<div class="row">
+  <div class="when">{year(pub.date)}</div>
+  <div>
+    <div class="title">{pub.title}</div>
+    <div class="sub">
+      {
+        pub.authors.map((a, i) => (
+          <>
+            {a === profile.pubName ? <b>{a}</b> : a}
+            {i < pub.authors.length - 1 && ', '}
+          </>
+        ))
+      }
+    </div>
+    <div class="sub">
+      <em>{pub.venue}</em>.
+      {
+        pub.links?.map((l) => (
+          <>
+            {' '}
+            <a href={l.href} target="_blank" rel="noopener">{l.label}</a>
+          </>
+        ))
+      }
+    </div>
+  </div>
+</div>

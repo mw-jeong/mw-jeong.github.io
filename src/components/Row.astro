@@ -1,0 +1,19 @@
+---
+import type { Entry } from '../data/cv';
+import { formatRange } from '../lib/format';
+
+interface Props {
+  entry: Entry;
+}
+const { entry } = Astro.props;
+---
+
+<div class="row">
+  <div class="when">{formatRange(entry)}</div>
+  <div>
+    <div>
+      <span class="title">{entry.title}</span>{entry.org && <span>, {entry.org}</span>}
+    </div>
+    {entry.details?.map((d) => <div class="sub" set:html={d} />)}
+  </div>
+</div>

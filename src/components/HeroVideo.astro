@@ -1,0 +1,144 @@
+---
+// AgentSUMO 시뮬레이션 replay 영상 (맨 위 전체 폭 배너).
+// Mapbox 규정상 지도 영상에는 Mapbox 로고와 텍스트 표기를 화면 안에 남겨야 해서,
+// 영상 오른쪽 위에 한 줄로 모아 둡니다. (로고는 위치 이동만 허용되고 꾸미면 안 됩니다.)
+interface Props {
+  loop: boolean;
+}
+const { loop } = Astro.props;
+const base = '/media/replay-wide';
+const feedback = 'https://apps.mapbox.com/feedback/#/127.036/37.501/15';
+---
+
+<figure class="hero-video">
+  <video
+    muted
+    playsinline
+    preload="auto"
+    data-loop={loop ? 'true' : 'false'}
+    poster={`${base}-start.jpg`}
+    data-poster-end={`${base}-end.jpg`}
+    disablepictureinpicture
+    disableremoteplayback
+    tabindex="0"
+    title="Click to replay"
+    aria-label="Replay of an AgentSUMO traffic simulation in Gangnam, Seoul"
+  >
+    <source src={`${base}.mp4`} type="video/mp4" />
+  </video>
+  <div class="credit">
+    <a class="mapbox-logo" href="https://www.mapbox.com/" target="_blank" rel="noopener" aria-label="Mapbox"></a>
+    <span class="attrib">
+      <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener">© Mapbox</a>
+      <a href="https://www.openstreetmap.org/about/" target="_blank" rel="noopener">© OpenStreetMap</a>
+      <a href={feedback} target="_blank" rel="noopener">Improve this map</a>
+    </span>
+  </div>
+</figure>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLVideoElement>('.hero-video video').forEach((v) => {
+    v.muted = true;
+    const replay = () => {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    };
+    v.addEventListener('click', replay);
+    v.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        replay();
+      }
+    });
+    if (reduce) {
+      if (v.dataset.posterEnd) v.poster = v.dataset.posterEnd;
+      return;
+    }
+    const loop = v.dataset.loop === 'true';
+    let visible = false;
+    // 반복 모드: 끝(근접 장면)에서 처음(위에서 본 지도)으로 툭 끊기지 않도록
+    // 잠깐 흐려졌다가 다시 시작합니다.
+    if (loop) {
+      v.addEventListener('ended', () => {
+        v.classList.add('fading');
+        window.setTimeout(() => {
+          v.currentTime = 0;
+          if (visible) v.play().catch(() => {});
+          v.classList.remove('fading');
+        }, 700);
+      });
+    }
+    // 화면에 보이면 재생. 반복 모드에서는 화면 밖으로 나가면 멈춥니다.
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) {
+          if (v.paused && (loop || !v.ended)) v.play().catch(() => {});
+        } else if (loop) v.pause();
+      },
+      { threshold: 0.25 },
+    ).observe(v);
+  });
+</script>
+
+<style>
+  .hero-video {
+    position: relative;
+    margin: 0;
+  }
+  video {
+    display: block;
+    width: 100%;
+    height: clamp(260px, 40vw, 560px);
+    object-fit: cover;
+    object-position: 50% 58%;
+    background: #f2f2f2;
+    cursor: pointer;
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    transition: opacity 0.6s ease;
+  }
+  video.fading {
+    opacity: 0;
+  }
+  .credit {
+    position: absolute;
+    top: 10px;
+    right: max(12px, calc((100% - var(--maxw)) / 2 + 24px));
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mapbox-logo {
+    display: block;
+    width: 88px;
+    height: 23px;
+    background: url('/media/mapbox-logo.svg') no-repeat;
+  }
+  .attrib {
+    font-size: 11px;
+    line-height: 1;
+    color: #4a5158;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 4px #fff;
+  }
+  .attrib a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .attrib a + a {
+    margin-left: 6px;
+  }
+  .attrib a:hover {
+    text-decoration: underline;
+  }
+  @media (max-width: 520px) {
+    .credit {
+      left: 12px;
+      right: 12px;
+      justify-content: space-between;
+    }
+  }
+</style>

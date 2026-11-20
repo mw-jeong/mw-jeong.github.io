@@ -1,0 +1,161 @@
+:root {
+  --paper: #ffffff;
+  --ink: #1e2328;
+  --ink-2: #59616a;
+  --ink-3: #8b939c;
+  --rule: #e3e7eb;
+  --underline: #cdd3d9;
+  --accent: #1f5fd1;
+  --maxw: 1000px;
+  --font: 'IBM Plex Sans', 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    system-ui, sans-serif;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+a:focus-visible,
+button:focus-visible,
+video:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+.container {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- CV sections ---------- */
+.cv-section {
+  margin-top: 64px;
+}
+.cv-section > h2,
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.page-title {
+  font-size: 26px;
+  border: 0;
+  padding: 0;
+  margin: 48px 0 20px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 24px;
+  padding: 12px 0;
+}
+.row .when {
+  color: var(--ink-3);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  padding-top: 1px;
+}
+.row .title {
+  font-weight: 500;
+}
+.row .sub {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.55;
+  margin-top: 2px;
+}
+.row .sub b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.more {
+  margin: 8px 0 0;
+  font-size: 15px;
+}
+
+.subhead {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin: 20px 0 0;
+}
+.cv-section > h2 + .subhead {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .cv-section {
+    margin-top: 48px;
+  }
+  .row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ---------- print: the page doubles as a PDF CV ---------- */
+@media print {
+  .site-header,
+  .hero-video,
+  .site-footer,
+  .more {
+    display: none !important;
+  }
+  body {
+    font-size: 10.5pt;
+  }
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  .cv-section {
+    margin-top: 20px;
+  }
+  .row {
+    padding: 5px 0;
+    break-inside: avoid;
+  }
+  a {
+    text-decoration: none;
+  }
+}

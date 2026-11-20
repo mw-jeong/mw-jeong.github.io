@@ -1,0 +1,25 @@
+---
+import { formatMonth } from '../lib/format';
+
+interface Props {
+  items: { date: string; text: string }[];
+}
+const { items } = Astro.props;
+---
+
+<div class="news">
+  {
+    items.map((n) => (
+      <div class="row">
+        <div class="when">{formatMonth(n.date)}</div>
+        <div set:html={n.text} />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .news .row {
+    padding: 7px 0;
+  }
+</style>

@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsList from '../components/NewsList.astro';
+import { news } from '../data/cv';
+---
+
+<Base title="News" description="News and updates from Minwoo Jeong.">
+  <div class="container">
+    <h1 class="page-title">News</h1>
+    <NewsList items={news} />
+  </div>
+</Base>

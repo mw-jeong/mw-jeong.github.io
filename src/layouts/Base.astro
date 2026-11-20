@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+import { profile, site } from '../data/profile';
+import { gallery } from '../data/cv';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const fullTitle = title ? `${title} | ${profile.name}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/media/replay-wide-end.jpg', Astro.site);
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isHome = path === '/';
+const nav = [
+  { href: '/news', label: 'News' },
+  ...(gallery.length > 0 ? [{ href: '/gallery', label: 'Gallery' }] : []),
+];
+const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container bar">
+        {isHome ? <span /> : <a class="home" href="/">{profile.name}</a>}
+        <nav aria-label="Main">
+          {
+            nav.map((item) => (
+              <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="container">Last updated {updated}.</div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .home {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  nav {
+    display: flex;
+    gap: 24px;
+  }
+  nav a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 15px;
+  }
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--ink);
+  }
+  nav a[aria-current='page'] {
+    font-weight: 500;
+  }
+  main {
+    padding-bottom: 80px;
+  }
+  .site-footer {
+    border-top: 1px solid var(--rule);
+    padding: 24px 0 40px;
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+</style>

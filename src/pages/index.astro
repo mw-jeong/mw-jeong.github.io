@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import Row from '../components/Row.astro';
+import Pub from '../components/Pub.astro';
+import NewsList from '../components/NewsList.astro';
+import {
+  education,
+  publications,
+  experience,
+  teaching,
+  awardsGraduate,
+  awardsUndergrad,
+  scholarships,
+  news,
+} from '../data/cv';
+
+const NEWS_ON_HOME = 4;
+---
+
+<Base>
+  <Hero />
+  <div class="container">
+    {
+      news.length > 0 && (
+        <Section id="news" title="News">
+          <NewsList items={news.slice(0, NEWS_ON_HOME)} />
+          {news.length > NEWS_ON_HOME && (
+            <p class="more">
+              <a href="/news">All news</a>
+            </p>
+          )}
+        </Section>
+      )
+    }
+
+    <Section id="education" title="Education">
+      {education.map((e) => <Row entry={e} />)}
+    </Section>
+
+    <Section id="publications" title="Publications">
+      {publications.map((p) => <Pub pub={p} />)}
+    </Section>
+
+    <Section id="experience" title="Experience">
+      {experience.map((e) => <Row entry={e} />)}
+    </Section>
+
+    <Section id="teaching" title="Teaching">
+      {teaching.map((e) => <Row entry={e} />)}
+    </Section>
+
+    {
+      (awardsGraduate.length > 0 || awardsUndergrad.length > 0) && (
+        <Section id="awards" title="Awards">
+          {awardsGraduate.length > 0 && <h3 class="subhead">Graduate</h3>}
+          {awardsGraduate.map((e) => <Row entry={e} />)}
+          {awardsUndergrad.length > 0 && <h3 class="subhead">Undergraduate (selected)</h3>}
+          {awardsUndergrad.map((e) => <Row entry={e} />)}
+        </Section>
+      )
+    }
+
+    {
+      scholarships.length > 0 && (
+        <Section id="scholarships" title="Scholarships">
+          {scholarships.map((e) => <Row entry={e} />)}
+        </Section>
+      )
+    }
+  </div>
+</Base>
